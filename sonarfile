@@ -24,8 +24,9 @@ node {
       
       archive 'target/*.war'
    }
-   stage ('deploy'){
-   echo 'deployment started'
-       sh "curl -v -u admin:admin -T '/var/lib/jenkins/jobs/Pipeline-Test/builds/18/archive/target/spring3-mvc-maven-xml-hello-world-1.0-SNAPSHOT.war' 'http://18.220.105.79:8081/manager/html'"
+   stage("DeployAppTomcat")
+ {
+  sshagent(['d2e46c28-c4c3-46a9-aae5-6b73bc5b839f']) {
+    sh "scp -o StrictHostKeyChecking=no target/spring3-mvc-maven-xml-hello-world-1.0-SNAPSHOT.war  centos@13.233.71.179:/usr/share/tomcat/webapps/" 
   }
-}
+ }
