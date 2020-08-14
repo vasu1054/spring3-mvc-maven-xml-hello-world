@@ -1,0 +1,44 @@
+node {
+   def M2_HOME="/usr/share/maven"
+   stage('getscm') { // for display purposes
+      // Get some code from a GitHub repository
+      git 'https://github.com/Devops6060/spring3-mvc-maven-xml-hello-world.git'
+      // Get the Maven tool.
+   }
+   stage('SonarQube analysis') {
+    def scannerHome = tool 'sonar';
+    withSonarQubeEnv('sonar') { // If you have configured more than one global server connection, you can specify its name
+      sh "${scannerHome}/bin/sonar-scanner"
+    }
+  }
+   stage('Build') {
+      // Run the maven build
+      if (isUnix()) {
+         sh "${M2_HOME}/bin/mvn -Dmaven.test.failure.ignore clean package"
+      } else {
+      echo 'this is build maven artifact'
+         bat(/"${mvnHome}\bin\mvn" -Dmaven.test.failure.ignore clean package/)
+      }
+   }
+    stage('artifact') {
+      
+      archive 'target/*.war'
+   }
+   stage('build image'){
+  sh 'docker build -t devops6060/krishna:1.0 .'
+}
+stage('push Docker Image'){
+withCredentials([string(credentialsId: 'DockerHubPwd', variable: 'DockerHubPwd')]) {
+    sh "docker login -u devops6060 -p ${DockerHubPwd}"
+}
+  sh 'docker push devops6060/krishna:1.0'
+}
+stage('Run Container'){
+ sh 'docker run -p 8081:8080 -d --name krishnaapp devops6060/krishna:1.0'
+}
+   stage("DeployAppTomcat") {
+  sshagent(['d2e46c28-c4c3-46a9-aae5-6b73bc5b839f']) {
+    sh "scp -o StrictHostKeyChecking=no target/spring3-mvc-maven-xml-hello-world-1.0-SNAPSHOT.war  centos@13.233.71.179:/usr/share/tomcat/webapps/" 
+   }
+  }
+ }
