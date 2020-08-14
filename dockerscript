@@ -5,12 +5,7 @@ node {
       git 'https://github.com/Devops6060/spring3-mvc-maven-xml-hello-world.git'
       // Get the Maven tool.
    }
-   stage('SonarQube analysis') {
-    def scannerHome = tool 'sonar';
-    withSonarQubeEnv('sonar') { // If you have configured more than one global server connection, you can specify its name
-      sh "${scannerHome}/bin/sonar-scanner"
-    }
-  }
+   
    stage('Build') {
       // Run the maven build
       if (isUnix()) {
@@ -36,9 +31,5 @@ withCredentials([string(credentialsId: 'DockerHubPwd', variable: 'DockerHubPwd')
 stage('Run Container'){
  sh 'docker run -p 8081:8080 -d --name krishnaapp devops6060/krishna:1.0'
 }
-   stage("DeployAppTomcat") {
-  sshagent(['d2e46c28-c4c3-46a9-aae5-6b73bc5b839f']) {
-    sh "scp -o StrictHostKeyChecking=no target/spring3-mvc-maven-xml-hello-world-1.0-SNAPSHOT.war  centos@13.233.71.179:/usr/share/tomcat/webapps/" 
-   }
-  }
+  
  }
