@@ -28,5 +28,36 @@ pipeline {
                         }
                     }
                 }
+                    stage('Artifactory') {
+            steps {
+                  script{
+                    rtServer(
+                        id: "ARTIFACTORY_SERVER",
+                        url: 'http://3.145.102.238:8082/',
+                        credentialsId: 'ARTIFACTORY_SERVER',
+                        bypassProxy: true,
+                    )
+                    rtUpload(
+                        serverId: 'ARTIFACTORY_SERVER',
+                        spec:
+                        '''{
+                        "files": [{
+                            "pattern": "./target/*.war",
+                            "target": "test-repo-maven-remote/1.0.${BUILD_NUMBER}/",
+                            "recursive": "false"
+                        }]
+                    }''',
+                    failNoOp: true
+                )
+                rtPublishBuildInfo(
+                    serverId: 'ARTIFACTORY_SERVER',
+                    buildName: 'test-repo-maven-remote',
+                    buildNumber: "${branch}",
+                )
+
+        }
+                }
+        }
         }
     }
+
